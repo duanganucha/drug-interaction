@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Drug Interaction Checker — เวอร์ชันปรับปรุง</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121833;
+      --muted: #aab2d5;
+      --border: #2a3463;
+      --ok: #1f8b4c;
+      --warn: #d4a106;
+      --danger: #c93939;
+      --accent: #7aa2ff;
+      --text: #e8ecff;
+      --hover: rgba(122,162,255,0.08);
+    }
+    :root.light {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --muted: #4a4a4a;
+      --border: #d6d9e6;
+      --ok: #1f8b4c;
+      --warn: #b88405;
+      --danger: #b53333;
+      --accent: #3355cc;
+      --text: #1a1a1a;
+      --hover: rgba(51,85,204,0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      padding: 24px;
+      color: var(--text);
+      background: var(--bg);
+      transition: background 0.3s, color 0.3s;
+    }
+    h1, h2, h3 { margin: 0 0 10px; }
+    .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 18px; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 980px) { .grid { grid-template-columns: 420px 1fr; } }
+
+    label { font-size: 0.85rem; color: var(--muted); }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s, border-color 0.3s;
+    }
+    textarea { resize: vertical; min-height: 56px; }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform .05s ease, background .2s ease, border-color .2s ease, color .2s ease;
+    }
+    .btn:hover { background: var(--accent); color: #fff; }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary { background: transparent; }
+    .btn.ghost { background: transparent; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px dashed var(--border); padding: 10px; text-align: left; }
+    th { color: var(--text); font-weight: 600; position: sticky; top: 0; background: var(--card); }
+    tr:hover td { background: var(--hover); }
+
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; }
+    .pill.low { background: rgba(31,139,76,.12); color: var(--ok); border: 1px solid rgba(31,139,76,.4); }
+    .pill.mid { background: rgba(212,161,6,.12); color: var(--warn); border: 1px solid rgba(212,161,6,.45); }
+    .pill.high { background: rgba(201,57,57,.12); color: var(--danger); border: 1px solid rgba(201,57,57,.45); }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    .right { margin-left: auto; }
+    .nowrap { white-space: nowrap; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .danger { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <header style="margin-bottom:20px; display:flex; align-items:center; gap:12px;">
+    <div>
+      <h1>Drug Interaction Checker</h1>
+      <div class="sub">เช็คคู่ยาซ้ำแบบเข้าใจง่าย: เราจัดเก็บ <em>คู่ยา</em> แบบสมมาตร (A+B = B+A) ป้องกันการซ้ำ พร้อมสีบ่งระดับความเสี่ยง เก็บข้อมูลไว้ในเบราว์เซอร์คุณ</div>
+    </div>
+    <button class="btn right" id="btnTheme" title="สลับธีม">🌙 โหมดมืด</button>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2 style="margin-bottom:10px">เพิ่ม / ตรวจสอบ คู่ยา</h2>
+      <div class="row">
+        <div style="flex:1; min-width: 180px;">
+          <label for="drugA">ชื่อยา 1</label>
+          <input id="drugA" list="drugList" placeholder="เช่น Aspirin" />
+        </div>
+        <div style="flex:1; min-width: 180px;">
+          <label for="drugB">ชื่อยา 2</label>
+          <input id="drugB" list="drugList" placeholder="เช่น Warfarin" />
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1; min-width: 180px;">
+          <label for="severity">ระดับความเสี่ยง</label>
+          <select id="severity">
+            <option value="สูง">สูง (หลีกเลี่ยง/เฝ้าระวังใกล้ชิด)</option>
+            <option value="ปานกลาง">ปานกลาง (ระวัง/ปรับขนาดยา)</option>
+            <option value="ต่ำ">ต่ำ (สังเกตอาการ)</option>
+          </select>
+        </div>
+        <div style="flex:2; min-width: 240px;">
+          <label for="notes">หมายเหตุ (ถ้ามี)</label>
+          <input id="notes" placeholder="กลไก, อาการ, แนวทางรับมือแบบย่อ" />
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <button class="btn" id="btnAdd">เพิ่ม/อัปเดต</button>
+        <button class="btn secondary" id="btnCheck">ตรวจสอบ</button>
+        <div class="right muted">ระบบจะบันทึกอัตโนมัติในเครื่องคุณ (localStorage)</div>
+      </div>
+      <datalist id="drugList"></datalist>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-bottom:10px">รายการคู่ยาทั้งหมด</h2>
+      <div class="toolbar" style="margin-bottom:10px">
+        <input id="search" placeholder="พิมพ์เพื่อกรอง เช่น warfarin, สูง" style="flex:1" />
+        <button class="btn ghost" id="btnExport">Export JSON</button>
+        <label class="btn ghost nowrap" for="fileImport">Import JSON</label>
+        <input id="fileImport" type="file" accept="application/json" style="display:none" />
+        <button class="btn ghost danger" id="btnClear">ล้างทั้งหมด</button>
+      </div>
+      <div class="card" style="padding:0; overflow:auto; max-height:60vh;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:22%">ยา 1</th>
+              <th style="width:22%">ยา 2</th>
+              <th style="width:18%">ระดับ</th>
+              <th>หมายเหตุ</th>
+              <th class="nowrap" style="width:1%">ลบ</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="muted" style="margin-top:8px">* ข้อมูลตัวอย่างมีให้เริ่มต้น คุณสามารถแก้ไข/เพิ่มได้ตามการใช้งานจริง</div>
+    </section>
+  </div>
+
+  <footer class="muted" style="margin-top:16px">
+    <span class="mono">หมายเหตุสำคัญ:</span> เครื่องมือนี้ใช้เพื่อการช่วยตรวจสอบเบื้องต้น ไม่ทดแทนแหล่งข้อมูลวิชาการ/ระบบ CPOE/คำสั่งแพทย์ ตรวจสอบกับฐานข้อมูลทางการแพทย์เสมอเมื่อใช้จริง
+  </footer>
+
+  <script>
+    const storeKey = 'drugInteractions_v2';
+    const themeKey = 'drugTheme';
+    const $ = (id) => document.getElementById(id);
+
+    function normalizeDrug(name) { return name.trim().replace(/\s+/g, ' '); }
+    function keyOf(a, b) {
+      const A = normalizeDrug(a).toLowerCase();
+      const B = normalizeDrug(b).toLowerCase();
+      if (!A || !B) return '';
+      return [A, B].sort().join(' | ');
+    }
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(storeKey)) || null; } catch { return null; }
+    }
+    function save(map) { localStorage.setItem(storeKey, JSON.stringify(map)); }
+
+    let db = load() || {
+      [keyOf('Aspirin', 'Warfarin')]: { a: 'Aspirin', b: 'Warfarin', level: 'สูง', notes: 'เสี่ยงเลือดออก เพิ่ม INR' },
+      [keyOf('Metformin', 'Alcohol')]: { a: 'Metformin', b: 'Alcohol', level: 'ปานกลาง', notes: 'เสี่ยง Lactic acidosis' },
+      [keyOf('Statin', 'Grapefruit')]: { a: 'Statin', b: 'Grapefruit', level: 'สูง', notes: 'ยับยั้ง CYP3A4 เพิ่ม CK/กล้ามเนื้ออักเสบ' },
+      [keyOf('Ibuprofen', 'Prednisolone')]: { a: 'Ibuprofen', b: 'Prednisolone', level: 'ต่ำ', notes: 'เพิ่มเสี่ยง GI irritation' },
+    };
+
+    function levelPill(level) {
+      const lv = (level || '').toLowerCase();
+      const cls = lv.includes('สูง') || lv.includes('high') ? 'high' :
+                  (lv.includes('กลาง') || lv.includes('medium')) ? 'mid' : 'low';
+      return `<span class="pill ${cls}">${level}</span>`;
+    }
+
+    function renderTable(filter = '') {
+      const tbody = $('tbody');
+      const q = filter.trim().toLowerCase();
+      const rows = Object.values(db)
+        .filter(it => {
+          if (!q) return true;
+          return (
+            it.a.toLowerCase().includes(q) ||
+            it.b.toLowerCase().includes(q) ||
+            (it.level||'').toLowerCase().includes(q) ||
+            (it.notes||'').toLowerCase().includes(q)
+          );
+        })
+        .sort((x, y) => x.a.localeCompare(y.a) || x.b.localeCompare(y.b));
+
+      tbody.innerHTML = rows.map(it => `
+        <tr>
+          <td>${escapeHtml(it.a)}</td>
+          <td>${escapeHtml(it.b)}</td>
+          <td>${levelPill(escapeHtml(it.level))}</td>
+          <td>${escapeHtml(it.notes||'')}</td>
+          <td><button class=\"btn ghost\" title=\"ลบรายการ\" onclick=\"removePair('${keyOf(it.a, it.b)}')\">🗑️</button></td>
+        </tr>
+      `).join('');
+
+      const drugs = [...new Set(Object.values(db).flatMap(it => [it.a, it.b]))].sort();
+      $('drugList').innerHTML = drugs.map(d => `<option value="${escapeHtml(d)}"></option>`).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>\"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
+    }
+
+    function addOrUpdate() {
+      const a = normalizeDrug($('drugA').value);
+      const b = normalizeDrug($('drugB').value);
+      const level = $('severity').value.trim();
+      const notes = $('notes').value.trim();
+
+      if (!a || !b) return Swal.fire('กรอกข้อมูลไม่ครบ', 'กรุณาใส่ชื่อยาให้ครบทั้ง 2 ช่อง', 'warning');
+      if (a.toLowerCase() === b.toLowerCase()) return Swal.fire('คู่ยาซ้ำตัวเอง', 'โปรดใส่ยาคนละตัว', 'warning');
+
+      const k = keyOf(a, b);
+      const existed = !!db[k];
+      db[k] = { a, b, level, notes };
+      save(db);
+      renderTable($('search').value);
+
+      Swal.fire(existed ? 'อัปเดตข้อมูลสำเร็จ' : 'เพิ่มข้อมูลสำเร็จ', `${a} + ${b} → ระดับ: ${level}`, existed ? 'info' : 'success');
+      $('notes').value = '';
+    }
+
+    function checkPair() {
+      const a = normalizeDrug($('drugA').value);
+      const b = normalizeDrug($('drugB').value);
+      if (!a || !b) return Swal.fire('กรอกข้อมูลไม่ครบ', 'กรุณาใส่ชื่อยาให้ครบทั้ง 2 ช่อง', 'warning');
+      const k = keyOf(a, b);
+      const found = db[k];
+      if (found) {
+        Swal.fire('พบการโต้ตอบยา', `${found.a} + ${found.b}<br>ระดับความเสี่ยง: <b>${found.level}</b>${found.notes? '<br>หมายเหตุ: '+escapeHtml(found.notes):''}`, 'error');
+      } else {
+        Swal.fire('ไม่พบในคลังนี้', 'ยังไม่มีข้อมูลคู่นี้ คุณสามารถเพิ่มได้ทันที', 'success');
+      }
+    }
+
+    function removePair(k) {
+      Swal.fire({
+        title: 'ลบรายการนี้?', text: 'การลบไม่สามารถย้อนกลับได้', icon: 'warning', showCancelButton: true,
+        confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก'
+      }).then(res => {
+        if (res.isConfirmed) {
+          delete db[k];
+          save(db); renderTable($('search').value);
+          Swal.fire('ลบแล้ว', '', 'success');
+        }
+      });
+    }
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'drug_interactions.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJson(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (Array.isArray(data)) {
+            data.forEach(it => {
+              if (it && it.a && it.b) db[keyOf(it.a, it.b)] = { a: it.a, b: it.b, level: it.level||'ไม่ระบุ', notes: it.notes||'' };
+            });
+          } else if (data && typeof data === 'object') {
+            Object.values(data).forEach(it => {
+              if (it && it.a && it.b) db[keyOf(it.a, it.b)] = { a: it.a, b: it.b, level: it.level||'ไม่ระบุ', notes: it.notes||'' };
+            });
+          } else throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');
+          save(db); renderTable($('search').value);
+          Swal.fire('นำเข้าเสร็จสิ้น', 'รวมข้อมูลเข้ากับคลังเดิมแล้ว', 'success');
+        } catch (e) {
+          Swal.fire('นำเข้าไม่สำเร็จ', e.message || 'ไฟล์ไม่ถูกต้อง', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function clearAll() {
+      Swal.fire({ title: 'ล้างข้อมูลทั้งหมด?', text: 'ไม่สามารถย้อนกลับได้', icon: 'warning', showCancelButton: true, confirmButtonText: 'ล้าง', cancelButtonText: 'ยกเลิก' })
+        .then(res => {
+          if (res.isConfirmed) {
+            db = {}; save(db); renderTable();
+            Swal.fire('ล้างแล้ว', '', 'success');
+          }
+        });
+    }
+
+    // —— Theme: toggle & persistence ——
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    function applyTheme(theme) {
+      const isLight = theme === 'light';
+      document.documentElement.classList.toggle('light', isLight);
+      const btn = $('btnTheme');
+      btn.textContent = isLight ? '☀️ โหมดสว่าง' : '🌙 โหมดมืด';
+      localStorage.setItem(themeKey, theme);
+    }
+    function initTheme() {
+      const saved = localStorage.getItem(themeKey);
+      applyTheme(saved ? saved : (prefersLight ? 'light' : 'dark'));
+    }
+
+    // —— Event wiring ——
+    $('btnAdd').addEventListener('click', addOrUpdate);
+    $('btnCheck').addEventListener('click', checkPair);
+    $('btnExport').addEventListener('click', exportJson);
+    $('fileImport').addEventListener('change', (e) => importJson(e.target.files[0]));
+    $('btnClear').addEventListener('click', clearAll);
+    $('search').addEventListener('input', (e) => renderTable(e.target.value));
+    $('btnTheme').addEventListener('click', () => {
+      const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+      applyTheme(next);
+    });
+
+    ['drugA','drugB','notes'].forEach(id => {
+      $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') addOrUpdate(); });
+    });
+
+    // เริ่มต้น
+    initTheme();
+    renderTable();
+  </script>
+</body>
+</html>
