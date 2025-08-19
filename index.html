@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Drug Interaction Checker — เวอร์ชันปรับปรุง</title>
+  <title>1.0 Drug Interaction Checker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -107,16 +107,6 @@
     </div>
     <button class="btn right" id="btnTheme" title="สลับธีม">🌙 โหมดมืด</button>
   </header>
-
-  <div class="card" style="margin-bottom:16px">
-    <h2 style="margin-bottom:10px">เชื่อมต่อ Google Sheet (ผ่าน Google Apps Script)</h2>
-    <div class="toolbar" style="gap:12px">
-      <input id="gasUrl" placeholder="วาง URL ของ Apps Script Web App (GET)" style="flex:1" />
-      <button class="btn" id="btnSaveUrl">บันทึก URL</button>
-      <button class="btn" id="btnSync">ดึงข้อมูล</button>
-      <span class="muted right">รูปแบบคอลัมน์: <code class="mono">no, drug-a, drug-b, level, notes</code></span>
-    </div>
-  </div>
 
   <div class="grid">
     <section class="card">
@@ -321,13 +311,10 @@
           save(db); renderTable($('search').value);
           Swal.fire('นำเข้าเสร็จสิ้น', 'รวมข้อมูลเข้ากับคลังเดิมแล้ว', 'success');
         } catch (e) {
-        const msg = (e && e.message)
-          ? e.message + '
-
-หากเป็นปัญหา CORS ให้ตั้งค่า Apps Script: doGet() ตอบกลับด้วย header Access-Control-Allow-Origin: *'
-          : 'ไม่ทราบสาเหตุ';
-        Swal.fire('ดึงข้อมูลไม่สำเร็จ', msg, 'error');
-      }
+          Swal.fire('นำเข้าไม่สำเร็จ', e.message || 'ไฟล์ไม่ถูกต้อง', 'error');
+        }
+      };
+      reader.readAsText(file);
     }
 
     function clearAll() {
@@ -338,7 +325,6 @@
             Swal.fire('ล้างแล้ว', '', 'success');
           }
         });
-            });
     }
 
     // —— Theme: toggle & persistence ——
@@ -366,8 +352,6 @@
       const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
       applyTheme(next);
     });
-    $('btnSaveUrl').addEventListener('click', () => { saveGasUrl($('gasUrl').value.trim()); Swal.fire('บันทึก URL แล้ว', '', 'success'); });
-    $('btnSync').addEventListener('click', syncFromGAS);
 
     ['drugA','drugB','notes'].forEach(id => {
       $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') addOrUpdate(); });
@@ -375,8 +359,6 @@
 
     // เริ่มต้น
     initTheme();
-    // preload GAS URL หากเคยบันทึกไว้
-    $('gasUrl').value = loadGasUrl();
     renderTable();
   </script>
 </body>
