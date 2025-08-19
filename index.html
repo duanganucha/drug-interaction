@@ -321,58 +321,12 @@
           save(db); renderTable($('search').value);
           Swal.fire('นำเข้าเสร็จสิ้น', 'รวมข้อมูลเข้ากับคลังเดิมแล้ว', 'success');
         } catch (e) {
-          Swal.fire('นำเข้าไม่สำเร็จ', e.message || 'ไฟล์ไม่ถูกต้อง', 'error');
-        }
-      };
-      reader.readAsText(file);
-    }
+        const msg = (e && e.message)
+          ? e.message + '
 
-    // —— Sync from Google Apps Script ——
-    const gasKey = 'drugGASUrl';
-    function loadGasUrl() { return localStorage.getItem(gasKey) || ''; }
-    function saveGasUrl(url) { localStorage.setItem(gasKey, url); }
-
-    async function syncFromGAS() {
-      const url = $('gasUrl').value.trim();
-      if (!url) return Swal.fire('ยังไม่ได้ใส่ URL', 'กรุณาวาง URL ของ Apps Script Web App', 'warning');
-
-      const loading = Swal.fire({title: 'กำลังดึงข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-      try {
-        const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error('HTTP '+res.status+' '+res.statusText);
-        const rows = await res.json();
-        if (!Array.isArray(rows)) throw new Error('รูปแบบผลลัพธ์ไม่ถูกต้อง (ต้องเป็น JSON array)');
-
-        // คาดหวังฟิลด์: no, drug-a, drug-b, level, notes
-        const newDb = {};
-        rows.forEach(r => {
-          const a = (r['drug-a'] ?? r['drugA'] ?? r['ยา1'] ?? '').toString().trim();
-          const b = (r['drug-b'] ?? r['drugB'] ?? r['ยา2'] ?? '').toString().trim();
-          const level = (r['level'] ?? r['ระดับ'] ?? '').toString().trim();
-          const notes = (r['notes'] ?? r['หมายเหตุ'] ?? '').toString().trim();
-          if (a && b) newDb[keyOf(a,b)] = { a, b, level: level || 'ไม่ระบุ', notes };
-        });
-
-        const { isConfirmed, isDenied } = await Swal.fire({
-          title: 'นำเข้าจาก Google Sheet สำเร็จ',
-          html: `พบ <b>${Object.keys(newDb).length}</b> แถว ต้องการทำอย่างไรต่อ?`,
-          showDenyButton: true,
-          confirmButtonText: 'แทนที่ทั้งหมด',
-          denyButtonText: 'รวมกับของเดิม',
-          cancelButtonText: 'ยกเลิก',
-          showCancelButton: true,
-        });
-
-        if (isConfirmed) { db = newDb; }
-        else if (isDenied) { db = { ...db, ...newDb }; }
-        else { return; }
-
-        save(db); renderTable($('search').value);
-        Swal.fire('อัปเดตคลังเรียบร้อย', '', 'success');
-      } catch (e) {
-        Swal.fire('ดึงข้อมูลไม่สำเร็จ', (e && e.message) ? e.message + '
-
-หากเป็นปัญหา CORS ให้ตั้งค่า Apps Script: doGet() ตอบกลับด้วย header Access-Control-Allow-Origin: *' : 'ไม่ทราบสาเหตุ', 'error');
+หากเป็นปัญหา CORS ให้ตั้งค่า Apps Script: doGet() ตอบกลับด้วย header Access-Control-Allow-Origin: *'
+          : 'ไม่ทราบสาเหตุ';
+        Swal.fire('ดึงข้อมูลไม่สำเร็จ', msg, 'error');
       }
     }
 
@@ -384,14 +338,7 @@
             Swal.fire('ล้างแล้ว', '', 'success');
           }
         });
-    }() {
-      Swal.fire({ title: 'ล้างข้อมูลทั้งหมด?', text: 'ไม่สามารถย้อนกลับได้', icon: 'warning', showCancelButton: true, confirmButtonText: 'ล้าง', cancelButtonText: 'ยกเลิก' })
-        .then(res => {
-          if (res.isConfirmed) {
-            db = {}; save(db); renderTable();
-            Swal.fire('ล้างแล้ว', '', 'success');
-          }
-        });
+            });
     }
 
     // —— Theme: toggle & persistence ——
