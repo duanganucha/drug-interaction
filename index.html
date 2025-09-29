@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="th">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> 1.0 SSKH Drug Interaction Checker</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title> 1.0 SSKH Drug Interaction Checker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
     :root {
       --bg: #0b1020;
       --card: #121833;
@@ -98,83 +100,108 @@
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
     .danger { color: var(--danger); }
   </style>
-</head>
-<body>
-  <header style="margin-bottom:20px; display:flex; align-items:center; gap:12px;">
-    <div>
-      <h1>Drug Interaction Checker</h1>
-      <div class="sub">เช็คคู่ยาซ้ำแบบเข้าใจง่าย: เราจัดเก็บ <em>คู่ยา</em> แบบสมมาตร (A+B = B+A) ป้องกันการซ้ำ พร้อมสีบ่งระดับความเสี่ยง เก็บข้อมูลไว้ในเบราว์เซอร์คุณ</div>
+  </head>
+  <body>
+    <header
+      style="margin-bottom:20px; display:flex; align-items:center; gap:12px;">
+      <div>
+        <h1>Drug Interaction Checker</h1>
+        <div class="sub">เช็คคู่ยาซ้ำแบบเข้าใจง่าย: เราจัดเก็บ
+          <em>คู่ยา</em> แบบสมมาตร (A+B = B+A) ป้องกันการซ้ำ
+          พร้อมสีบ่งระดับความเสี่ยง
+          เก็บข้อมูลไว้ในเบราว์เซอร์คุณ</div>
+      </div>
+      <button class="btn right" id="btnTheme" title="สลับธีม">🌙
+        โหมดมืด</button>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2 style="margin-bottom:10px">เพิ่ม / ตรวจสอบ คู่ยา</h2>
+        <div class="row">
+          <div style="flex:1; min-width: 180px;">
+            <label for="drugA">ชื่อยา 1</label>
+            <input id="drugA" list="drugList"
+              placeholder="เช่น Aspirin" />
+          </div>
+          <div style="flex:1; min-width: 180px;">
+            <label for="drugB">ชื่อยา 2</label>
+            <input id="drugB" list="drugList"
+              placeholder="เช่น Warfarin" />
+          </div>
+        </div>
+        <div class="row">
+          <div style="flex:1; min-width: 180px;">
+            <label for="severity">ระดับความเสี่ยง</label>
+            <select id="severity">
+              <option value="สูง">สูง
+                (หลีกเลี่ยง/เฝ้าระวังใกล้ชิด)</option>
+              <option value="ปานกลาง">ปานกลาง
+                (ระวัง/ปรับขนาดยา)</option>
+              <option value="ต่ำ">ต่ำ (สังเกตอาการ)</option>
+            </select>
+          </div>
+          <div style="flex:2; min-width: 240px;">
+            <label for="notes">หมายเหตุ (ถ้ามี)</label>
+            <input id="notes"
+              placeholder="กลไก, อาการ, แนวทางรับมือแบบย่อ" />
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn" id="btnAdd">เพิ่ม/อัปเดต</button>
+          <button class="btn secondary" id="btnCheck">ตรวจสอบ</button>
+          <div class="right muted">ระบบจะบันทึกอัตโนมัติในเครื่องคุณ
+            (localStorage)</div>
+        </div>
+        <datalist id="drugList"></datalist>
+      </section>
+
+      <section class="card">
+        <h2 style="margin-bottom:10px">รายการคู่ยาทั้งหมด</h2>
+        <div class="toolbar" style="margin-bottom:10px">
+          <input id="search"
+            placeholder="พิมพ์เพื่อกรอง เช่น warfarin, สูง"
+            style="flex:1" />
+          <button class="btn ghost" id="btnExport">Export
+            JSON</button>
+          <label class="btn ghost nowrap" for="fileImport">Import
+            JSON</label>
+          <input id="fileImport" type="file" accept="application/json"
+            style="display:none" />
+          <button class="btn ghost danger"
+            id="btnClear">ล้างทั้งหมด</button>
+        </div>
+        <div class="card"
+          style="padding:0; overflow:auto; max-height:60vh;">
+          <table>
+            <thead>
+              <tr>
+                <th>ชื่อย่อ</th>
+                <th>รายการยา</th>
+                <th>กลไก</th>
+                <th style="width:38%">ผลลัพธ์</th>
+                <th>เริ่มมีฤทธิ์ต่อกัน</th>
+                <th>ติดตามค่า INR ทุก</th>
+                <th class="nowrap" style="width:1%"> ..</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div class="muted" style="margin-top:8px">*
+          ข้อมูลตัวอย่างมีให้เริ่มต้น
+          คุณสามารถแก้ไข/เพิ่มได้ตามการใช้งานจริง</div>
+      </section>
     </div>
-    <button class="btn right" id="btnTheme" title="สลับธีม">🌙 โหมดมืด</button>
-  </header>
 
-  <div class="grid">
-    <section class="card">
-      <h2 style="margin-bottom:10px">เพิ่ม / ตรวจสอบ คู่ยา</h2>
-      <div class="row">
-        <div style="flex:1; min-width: 180px;">
-          <label for="drugA">ชื่อยา 1</label>
-          <input id="drugA" list="drugList" placeholder="เช่น Aspirin" />
-        </div>
-        <div style="flex:1; min-width: 180px;">
-          <label for="drugB">ชื่อยา 2</label>
-          <input id="drugB" list="drugList" placeholder="เช่น Warfarin" />
-        </div>
-      </div>
-      <div class="row">
-        <div style="flex:1; min-width: 180px;">
-          <label for="severity">ระดับความเสี่ยง</label>
-          <select id="severity">
-            <option value="สูง">สูง (หลีกเลี่ยง/เฝ้าระวังใกล้ชิด)</option>
-            <option value="ปานกลาง">ปานกลาง (ระวัง/ปรับขนาดยา)</option>
-            <option value="ต่ำ">ต่ำ (สังเกตอาการ)</option>
-          </select>
-        </div>
-        <div style="flex:2; min-width: 240px;">
-          <label for="notes">หมายเหตุ (ถ้ามี)</label>
-          <input id="notes" placeholder="กลไก, อาการ, แนวทางรับมือแบบย่อ" />
-        </div>
-      </div>
-      <div class="toolbar" style="margin-top:10px">
-        <button class="btn" id="btnAdd">เพิ่ม/อัปเดต</button>
-        <button class="btn secondary" id="btnCheck">ตรวจสอบ</button>
-        <div class="right muted">ระบบจะบันทึกอัตโนมัติในเครื่องคุณ (localStorage)</div>
-      </div>
-      <datalist id="drugList"></datalist>
-    </section>
+    <footer class="muted" style="margin-top:16px">
+      <span class="mono">หมายเหตุสำคัญ:</span>
+      เครื่องมือนี้ใช้เพื่อการช่วยตรวจสอบเบื้องต้น
+      ไม่ทดแทนแหล่งข้อมูลวิชาการ/ระบบ CPOE/คำสั่งแพทย์
+      ตรวจสอบกับฐานข้อมูลทางการแพทย์เสมอเมื่อใช้จริง
+    </footer>
 
-    <section class="card">
-      <h2 style="margin-bottom:10px">รายการคู่ยาทั้งหมด</h2>
-      <div class="toolbar" style="margin-bottom:10px">
-        <input id="search" placeholder="พิมพ์เพื่อกรอง เช่น warfarin, สูง" style="flex:1" />
-        <button class="btn ghost" id="btnExport">Export JSON</button>
-        <label class="btn ghost nowrap" for="fileImport">Import JSON</label>
-        <input id="fileImport" type="file" accept="application/json" style="display:none" />
-        <button class="btn ghost danger" id="btnClear">ล้างทั้งหมด</button>
-      </div>
-      <div class="card" style="padding:0; overflow:auto; max-height:60vh;">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:22%">ยา 1</th>
-              <th style="width:22%">ยา 2</th>
-              <th style="width:18%">ระดับ</th>
-              <th>หมายเหตุ</th>
-              <th class="nowrap" style="width:1%">ลบ</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-      <div class="muted" style="margin-top:8px">* ข้อมูลตัวอย่างมีให้เริ่มต้น คุณสามารถแก้ไข/เพิ่มได้ตามการใช้งานจริง</div>
-    </section>
-  </div>
-
-  <footer class="muted" style="margin-top:16px">
-    <span class="mono">หมายเหตุสำคัญ:</span> เครื่องมือนี้ใช้เพื่อการช่วยตรวจสอบเบื้องต้น ไม่ทดแทนแหล่งข้อมูลวิชาการ/ระบบ CPOE/คำสั่งแพทย์ ตรวจสอบกับฐานข้อมูลทางการแพทย์เสมอเมื่อใช้จริง
-  </footer>
-
-  <script>
+    <script>
     const storeKey = 'drugInteractions_v2';
     const themeKey = 'drugTheme';
     const $ = (id) => document.getElementById(id);
@@ -193,10 +220,10 @@
     function save(map) { localStorage.setItem(storeKey, JSON.stringify(map)); }
 
     let db = load() || {
-      [keyOf('Aspirin', 'Warfarin')]: { a: 'Aspirin', b: 'Warfarin', level: 'สูง', notes: 'เสี่ยงเลือดออก เพิ่ม INR' },
-      [keyOf('Metformin', 'Alcohol')]: { a: 'Metformin', b: 'Alcohol', level: 'ปานกลาง', notes: 'เสี่ยง Lactic acidosis' },
-      [keyOf('Statin', 'Grapefruit')]: { a: 'Statin', b: 'Grapefruit', level: 'สูง', notes: 'ยับยั้ง CYP3A4 เพิ่ม CK/กล้ามเนื้ออักเสบ' },
-      [keyOf('Ibuprofen', 'Prednisolone')]: { a: 'Ibuprofen', b: 'Prednisolone', level: 'ต่ำ', notes: 'เพิ่มเสี่ยง GI irritation' },
+      // [keyOf('Aspirin', 'Warfarin')]: { a: 'Aspirin', b: 'Warfarin', level: 'สูง', notes: 'เสี่ยงเลือดออก เพิ่ม INR' },
+      // [keyOf('Metformin', 'Alcohol')]: { a: 'Metformin', b: 'Alcohol', level: 'ปานกลาง', notes: 'เสี่ยง Lactic acidosis' },
+      // [keyOf('Statin', 'Grapefruit')]: { a: 'Statin', b: 'Grapefruit', level: 'สูง', notes: 'ยับยั้ง CYP3A4 เพิ่ม CK/กล้ามเนื้ออักเสบ' },
+      // [keyOf('Ibuprofen', 'Prednisolone')]: { a: 'Ibuprofen', b: 'Prednisolone', level: 'ต่ำ', notes: 'เพิ่มเสี่ยง GI irritation' },
     };
 
     function levelPill(level) {
@@ -360,6 +387,55 @@
     // เริ่มต้น
     initTheme();
     renderTable();
+
+
+    const API_URL = "https://script.google.com/macros/s/AKfycbwDh_ui4STIJhjUyJwyPZKs9Pxj3NbM92K4Gt2u2nbFuArqUhDdTVyzt4MpgnVpevEvcg/exec";
+
+
+    function levelPill(level) {
+      const lv = (level || "").toLowerCase();
+      if (lv.includes("สูง")) return `<span class="pill high">${level}</span>`;
+      if (lv.includes("กลาง")) return `<span class="pill mid">${level}</span>`;
+      return `<span class="pill low">${level}</span>`;
+    }
+
+    async function loadFromSheet() {
+      const res = await fetch(API_URL + "?action=list");
+      const data = await res.json();
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = data.map(it => `
+        <tr>
+          <td>${it["ชื่อย่อ"]}</td>
+          <td>${it["รายการยา"]}</td>
+          <td>${levelPill(it["ผลลัพธ์"])}</td>
+          <td>${it["กลไก"]}</td>
+          
+          <td>${it["เริ่มมีฤทธิ์ต่อกัน"]}</td>
+          <td>${it["ติดตามค่า INR ทุก"]}</td>
+        </tr>
+      `).join("");
+      const drugs = [...new Set(data.map(it => it["ชื่อยา"]))];
+      document.getElementById("drugList").innerHTML = drugs.map(d => `<option value="${d}"></option>`).join("");
+    }
+
+    async function checkFromSheet(drug) {
+      const res = await fetch(API_URL + "?action=check&drug=" + encodeURIComponent(drug));
+      const data = await res.json();
+      if (data.length > 0) {
+        Swal.fire("พบข้อมูล", `${drug} → ${data[0]["ผลลัพธ์"]}<br>${data[0]["กลไก"]}`, "info");
+      } else {
+        Swal.fire("ไม่พบ", "ยังไม่มีข้อมูลยานี้ในระบบ", "warning");
+      }
+    }
+
+    document.getElementById("btnCheck").addEventListener("click", () => {
+      const drug = document.getElementById("drugA").value.trim();
+      if (!drug) return Swal.fire("กรอกชื่อยา", "", "warning");
+      checkFromSheet(drug);
+    });
+
+    // init
+    loadFromSheet();
   </script>
-</body>
+  </body>
 </html>
