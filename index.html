@@ -122,15 +122,15 @@
           <div style="flex:1; min-width: 180px;">
             <label for="drugA">ชื่อยา 1</label>
             <input id="drugA" list="drugList"
-              placeholder="เช่น Aspirin" />
+              placeholder=" " />
           </div>
           <div style="flex:1; min-width: 180px;">
             <label for="drugB">ชื่อยา 2</label>
             <input id="drugB" list="drugList"
-              placeholder="เช่น Warfarin" />
+              placeholder=" " />
           </div>
         </div>
-        <div class="row">
+        <!-- <div class="row">
           <div style="flex:1; min-width: 180px;">
             <label for="severity">ระดับความเสี่ยง</label>
             <select id="severity">
@@ -146,12 +146,12 @@
             <input id="notes"
               placeholder="กลไก, อาการ, แนวทางรับมือแบบย่อ" />
           </div>
-        </div>
+        </div> -->
         <div class="toolbar" style="margin-top:10px">
-          <button class="btn" id="btnAdd">เพิ่ม/อัปเดต</button>
-          <button class="btn secondary" id="btnCheck">ตรวจสอบ</button>
-          <div class="right muted">ระบบจะบันทึกอัตโนมัติในเครื่องคุณ
-            (localStorage)</div>
+          <!-- <button class="btn" id="btnAdd">เพิ่ม/อัปเดต</button> -->
+          <button class="btn  " id="btnCheck">ตรวจสอบ</button>
+          <!-- <div class="right muted">ระบบจะบันทึกอัตโนมัติในเครื่องคุณ
+            (localStorage)</div> -->
         </div>
         <datalist id="drugList"></datalist>
       </section>
@@ -164,12 +164,10 @@
             style="flex:1" />
           <button class="btn ghost" id="btnExport">Export
             JSON</button>
-          <label class="btn ghost nowrap" for="fileImport">Import
-            JSON</label>
+
           <input id="fileImport" type="file" accept="application/json"
             style="display:none" />
-          <button class="btn ghost danger"
-            id="btnClear">ล้างทั้งหมด</button>
+
         </div>
         <div class="card"
           style="padding:0; overflow:auto; max-height:60vh;">
@@ -178,6 +176,7 @@
               <tr>
                 <th>ชื่อย่อ</th>
                 <th>รายการยา</th>
+                <th>ยาปฏิกิริยา</th>
                 <th>กลไก</th>
                 <th style="width:38%">ผลลัพธ์</th>
                 <th>เริ่มมีฤทธิ์ต่อกัน</th>
@@ -188,9 +187,7 @@
             <tbody id="tbody"></tbody>
           </table>
         </div>
-        <div class="muted" style="margin-top:8px">*
-          ข้อมูลตัวอย่างมีให้เริ่มต้น
-          คุณสามารถแก้ไข/เพิ่มได้ตามการใช้งานจริง</div>
+
       </section>
     </div>
 
@@ -286,17 +283,55 @@
     }
 
     function checkPair() {
-      const a = normalizeDrug($('drugA').value);
-      const b = normalizeDrug($('drugB').value);
-      if (!a || !b) return Swal.fire('กรอกข้อมูลไม่ครบ', 'กรุณาใส่ชื่อยาให้ครบทั้ง 2 ช่อง', 'warning');
-      const k = keyOf(a, b);
-      const found = db[k];
-      if (found) {
-        Swal.fire('พบการโต้ตอบยา', `${found.a} + ${found.b}<br>ระดับความเสี่ยง: <b>${found.level}</b>${found.notes? '<br>หมายเหตุ: '+escapeHtml(found.notes):''}`, 'error');
-      } else {
-        Swal.fire('ไม่พบในคลังนี้', 'ยังไม่มีข้อมูลคู่นี้ คุณสามารถเพิ่มได้ทันที', 'success');
+        const a = normalizeDrug($('drugA').value).toLowerCase();
+        const b = normalizeDrug($('drugB').value).toLowerCase();
+        if (!a || !b) {
+          return Swal.fire('กรอกข้อมูลไม่ครบ', 'กรุณาใส่ชื่อยาให้ครบทั้ง 2 ช่อง', 'warning');
+        }
+
+        // หาทั้งหมดที่ "มี" a และ b อยู่ใน key
+        // const results = Object.values(db).filter(item =>
+        //   (item.a.includes(a) && item.b.includes(b)) ||
+        //   (item.a.includes(b) && item.b.includes(a))
+        // );
+
+        console.log(db)
+
+        const results = db.filter(item => {
+          console.log(item['รายการยา'], item["ยาปฏิกิริยา"] );
+          if (!item['รายการยา'] || !item["ยาปฏิกิริยา"]) return false;
+          const A = item['รายการยา'].toLowerCase();
+          const B = item["ยาปฏิกิริยา"].toLowerCase();
+          return (
+            (A.includes(a) && B.includes(b)) ||
+            (A.includes(b) && B.includes(a))
+          );
+        });
+
+        console.log(results);
+ 
+
+        if (results.length > 0) {
+  const found = results[0];
+  Swal.fire(
+    '💊 พบการโต้ตอบยา',
+    `${found['รายการยา']} + ${found["ยาปฏิกิริยา"]}
+     <br>⚙️ กลไก: <b>${found['กลไก']}</b>
+     ${found['เริ่มมีฤทธิ์ต่อกัน'] ? '<br>📝 หมายเหตุ: ' + escapeHtml(found['เริ่มมีฤทธิ์ต่อกัน']) : ''}`,
+    'error'
+  );
+  return;
+} else {
+  Swal.fire(
+    'ℹ️ ไม่พบในคลังนี้',
+    '📂 ยังไม่มีข้อมูลคู่นี้ คุณสามารถเพิ่มได้ทันที',
+    'success'
+  );
+  return;
+}
+
       }
-    }
+
 
     function removePair(k) {
       Swal.fire({
@@ -319,31 +354,7 @@
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     }
-
-    function importJson(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const data = JSON.parse(reader.result);
-          if (Array.isArray(data)) {
-            data.forEach(it => {
-              if (it && it.a && it.b) db[keyOf(it.a, it.b)] = { a: it.a, b: it.b, level: it.level||'ไม่ระบุ', notes: it.notes||'' };
-            });
-          } else if (data && typeof data === 'object') {
-            Object.values(data).forEach(it => {
-              if (it && it.a && it.b) db[keyOf(it.a, it.b)] = { a: it.a, b: it.b, level: it.level||'ไม่ระบุ', notes: it.notes||'' };
-            });
-          } else throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');
-          save(db); renderTable($('search').value);
-          Swal.fire('นำเข้าเสร็จสิ้น', 'รวมข้อมูลเข้ากับคลังเดิมแล้ว', 'success');
-        } catch (e) {
-          Swal.fire('นำเข้าไม่สำเร็จ', e.message || 'ไฟล์ไม่ถูกต้อง', 'error');
-        }
-      };
-      reader.readAsText(file);
-    }
-
+ 
     function clearAll() {
       Swal.fire({ title: 'ล้างข้อมูลทั้งหมด?', text: 'ไม่สามารถย้อนกลับได้', icon: 'warning', showCancelButton: true, confirmButtonText: 'ล้าง', cancelButtonText: 'ยกเลิก' })
         .then(res => {
@@ -369,20 +380,19 @@
     }
 
     // —— Event wiring ——
-    $('btnAdd').addEventListener('click', addOrUpdate);
+    // $('btnAdd').addEventListener('click', addOrUpdate);
     $('btnCheck').addEventListener('click', checkPair);
-    $('btnExport').addEventListener('click', exportJson);
-    $('fileImport').addEventListener('change', (e) => importJson(e.target.files[0]));
-    $('btnClear').addEventListener('click', clearAll);
+    $('btnExport').addEventListener('click', exportJson); 
+    // $('btnClear').addEventListener('click', clearAll);
     $('search').addEventListener('input', (e) => renderTable(e.target.value));
     $('btnTheme').addEventListener('click', () => {
       const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
       applyTheme(next);
     });
 
-    ['drugA','drugB','notes'].forEach(id => {
-      $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') addOrUpdate(); });
-    });
+    // ['drugA','drugB','notes'].forEach(id => {
+    //   $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') addOrUpdate(); });
+    // });
 
     // เริ่มต้น
     initTheme();
@@ -402,11 +412,15 @@
     async function loadFromSheet() {
       const res = await fetch(API_URL + "?action=list");
       const data = await res.json();
+      db = data;
+      
+      console.log(db)
       const tbody = document.getElementById("tbody");
       tbody.innerHTML = data.map(it => `
         <tr>
           <td>${it["ชื่อย่อ"]}</td>
           <td>${it["รายการยา"]}</td>
+          <td>${it["ยาปฏิกิริยา"]}</td>
           <td>${levelPill(it["ผลลัพธ์"])}</td>
           <td>${it["กลไก"]}</td>
           
@@ -419,13 +433,13 @@
     }
 
     async function checkFromSheet(drug) {
-      const res = await fetch(API_URL + "?action=check&drug=" + encodeURIComponent(drug));
-      const data = await res.json();
-      if (data.length > 0) {
-        Swal.fire("พบข้อมูล", `${drug} → ${data[0]["ผลลัพธ์"]}<br>${data[0]["กลไก"]}`, "info");
-      } else {
-        Swal.fire("ไม่พบ", "ยังไม่มีข้อมูลยานี้ในระบบ", "warning");
-      }
+      // const res = await fetch(API_URL + "?action=check&drug=" + encodeURIComponent(drug));
+      // const data = await res.json();
+      // if (data.length > 0) {
+      //   Swal.fire("พบข้อมูล", `${drug} → ${data[0]["ผลลัพธ์"]}<br>${data[0]["กลไก"]}`, "info");
+      // } else {
+      //   Swal.fire("ไม่พบ", "ยังไม่มีข้อมูลยานี้ในระบบ", "warning");
+      // }
     }
 
     document.getElementById("btnCheck").addEventListener("click", () => {
