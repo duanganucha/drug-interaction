@@ -126,6 +126,29 @@
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-family: "Roboto", sans-serif;
     }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--text-secondary);
+      padding: 0 4px;
+      display: none;
+    }
+
+    .input-wrapper input:not(:placeholder-shown) + .clear-btn {
+      display: block;
+    }
     
     .text-field input:focus {
       outline: none;
@@ -410,15 +433,23 @@
                 <div class="col-6">
                   <div class="text-field">
                     <label>ยาตัวที่ 1</label>
-                    <input id="drugA" list="drugList"
-                      placeholder="พิมพ์ชื่อยา...">
+                    <div class="input-wrapper">
+                      <input id="drugA" list="drugListA"
+                        placeholder="พิมพ์ชื่อยา..." autocomplete="off">
+                      <button class="clear-btn"
+                        data-target="drugA">&times;</button>
+                    </div>
                   </div>
                 </div>
                 <div class="col-6">
                   <div class="text-field">
                     <label>ยาตัวที่ 2</label>
-                    <input id="drugB" list="drugList"
-                      placeholder="พิมพ์ชื่อยา...">
+                    <div class="input-wrapper">
+                      <input id="drugB" list="drugListB"
+                        placeholder="พิมพ์ชื่อยา..." autocomplete="off">
+                      <button class="clear-btn"
+                        data-target="drugB">&times;</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -433,7 +464,8 @@
                 ตรวจสอบ
               </button>
 
-              <datalist id="drugList"></datalist>
+              <datalist id="drugListA"></datalist>
+              <datalist id="drugListB"></datalist>
 
               <div class="info-card">
                 <div class="info-card-title">ระดับความรุนแรง</div>
@@ -525,6 +557,23 @@
     const $ = (id) => document.getElementById(id);
     const API_URL = "https://script.google.com/macros/s/AKfycbwDh_ui4STIJhjUyJwyPZKs9Pxj3NbM92K4Gt2u2nbFuArqUhDdTVyzt4MpgnVpevEvcg/exec";
     let db = [];
+    let allDrugs = [];
+
+    function updateDrugList(inputId, listId) {
+      const input = $(inputId);
+      const list = $(listId);
+      const filter = input.value.toLowerCase();
+
+      if (filter.length < 1) {
+        list.innerHTML = '';
+        return;
+      }
+
+      const filteredDrugs = allDrugs.filter(d => d.toLowerCase().includes(
+        filter));
+      list.innerHTML = filteredDrugs.map(d =>
+        `<option value="${d}"></option>`).join("");
+    }
 
     function normalizeDrug(name) {
       return name.trim().replace(/\s+/g, ' ');
@@ -543,9 +592,9 @@
         const data = await res.json();
         db = data;
         renderTable();
-        
-        const drugs = [...new Set(data.flatMap(it => [it["รายการยา"], it["ยาปฏิกิริยา"]]))].filter(Boolean);
-        $("drugList").innerHTML = drugs.map(d => `<option value="${d}"></option>`).join("");
+
+        allDrugs = [...new Set(data.flatMap(it => [it["รายการยา"], it[
+          "ยาปฏิกิริยา"]]))].filter(Boolean);
       } catch (error) {
         console.error("Error loading data:", error);
         $("tbody").innerHTML = `
@@ -709,11 +758,23 @@
     $('btnCheck').addEventListener('click', checkPair);
     $('btnExport').addEventListener('click', exportJson);
     $('search').addEventListener('input', (e) => renderTable(e.target.value));
-    
-    // Enter key support
+
     ['drugA', 'drugB'].forEach(id => {
-      $(id).addEventListener('keydown', (e) => {
+      const input = $(id);
+      input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') checkPair();
+      });
+      input.addEventListener('input', () => updateDrugList(id, id.replace(
+        'drug', 'drugList')));
+    });
+
+    document.querySelectorAll('.clear-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const input = $(targetId);
+        input.value = '';
+        input.focus();
+        updateDrugList(targetId, targetId.replace('drug', 'drugList'));
       });
     });
 
