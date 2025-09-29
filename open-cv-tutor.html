@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การเรียนรู้: พื้นฐานของ OpenCV</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Prompt', sans-serif;
+        background: linear-gradient(180deg, #fdfbfb, #ebedee);
+      }
+      .navbar {
+        background: linear-gradient(90deg, #42a5f5, #478ed1);
+      }
+      .sidebar {
+        height: 100vh;
+        position: fixed;
+        top: 56px;
+        left: 0;
+        z-index: 1000;
+        overflow-y: auto;
+        padding-top: 20px;
+        background: #fdfdfd;
+        border-right: 1px solid #e0e0e0;
+        border-radius: 0 1rem 1rem 0;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease-in-out;
+      }
+      .sidebar.hidden {
+        transform: translateX(-100%);
+      }
+      .main-content {
+        margin-left: 25%;
+        padding-top: 20px;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @media (max-width: 767.98px) {
+        .sidebar {
+          position: fixed;
+          height: 100%;
+          top: 56px;
+          left: 0;
+          border-right: none;
+          border-radius: 0;
+          box-shadow: 4px 0 10px rgba(0,0,0,0.15);
+        }
+        .main-content {
+          margin-left: 0;
+        }
+        #sidebarToggle {
+          display: inline-block;
+        }
+      }
+      #sidebarToggle {
+        display: none;
+      }
+      pre {
+        background-color: #212121;
+        color: #f8f8f2;
+        border-radius: 10px;
+        padding: 15px;
+        overflow-x: auto;
+        font-size: 0.95rem;
+      }
+      code {
+        color: #ffb74d;
+        font-family: 'Fira Code', monospace;
+      }
+      .nav-link {
+        color: #495057;
+        transition: all 0.2s;
+        padding: 10px 15px;
+      }
+      .nav-item {
+        border-bottom: 1px solid #e0e0e0;
+      }
+      .nav-link.active, .nav-link:hover {
+        font-weight: bold;
+        color: #1976d2;
+        background: #e3f2fd;
+        border-radius: 0.5rem;
+      }
+      .page-anchor-padding {
+        padding-top: 76px;
+        margin-top: -56px;
+      }
+      h1.display-5 {
+        color: #1565c0;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      #loadingSpinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2000;
+        display: none;
+      }
+      .tts-btn {
+        /* This style is now mainly for the combined button */
+        cursor: pointer;
+        border-radius: 5px;
+        transition: opacity 0.2s;
+        font-weight: 600;
+      }
+      .tts-btn:hover {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark fixed-top shadow">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white" href="#">📚 การเรียนรู้:
+          พื้นฐานของ OpenCV</a>
+        <button class="btn btn-light d-md-none" id="sidebarToggle">☰</button>
+      </div>
+    </nav>
+    <div id="loadingSpinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div class="container-fluid">
+      <div class="row">
+        <nav id="sidebar" class="col-md-3 col-lg-3 d-md-block sidebar">
+          <div class="position-sticky d-flex flex-column h-100">
+            <input type="text" id="filterInput" class="form-control"
+              placeholder="🔍 ค้นหาบทเรียน...">
+            <div>
+              <h6
+                class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-3 text-muted text-uppercase">
+                สารบัญบทเรียน
+              </h6>
+              <ul id="sidebar-nav" class="nav flex-column mb-3">
+              </ul>
+            </div>
+          </div>
+        </nav>
+        <main class="col-md-9 ms-sm-auto col-lg-9 px-md-4 main-content">
+          <div id="content-container">
+            <div class="alert alert-info text-center mt-5" role="alert">
+              กรุณาป้อนรหัสผ่านเพื่อเข้าถึงเนื้อหา...
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Global variable for the Thai voice object
+      let thaiVoice = null;
+
+      // Function to find and set the Thai voice
+      function setThaiVoice() {
+          const voices = window.speechSynthesis.getVoices();
+          // Look for a voice starting with 'th-' (e.g., th-TH)
+          thaiVoice = voices.find(voice => voice.lang.startsWith('th-'));
+          if (!thaiVoice) {
+              console.warn("Thai voice not explicitly found. TTS reliability may vary.");
+          }
+      }
+
+      // 1. Try to set voice immediately
+      setThaiVoice();
+
+      // 2. Set listener in case voices load asynchronously (common issue)
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+          speechSynthesis.onvoiceschanged = setThaiVoice;
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbxx-Pwqw6peoR31HiEvhZiayquJRnbAIa6UVXd4ioAdetbk-w7Dzv1ZAw3HjghAbYZA0Q/exec';
+        const sidebarNav = document.getElementById('sidebar-nav');
+        const contentContainer = document.getElementById('content-container');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const filterInput = document.getElementById('filterInput');
+
+        sidebarToggle.addEventListener('click', () => {
+          // Toggle sidebar visibility for mobile
+          sidebar.classList.toggle('hidden');
+        });
+
+        function showLoading() {
+          loadingSpinner.style.display = 'block';
+        }
+        function hideLoading() {
+          loadingSpinner.style.display = 'none';
+        }
+
+        function filterLessons() {
+          const filter = filterInput.value.toLowerCase();
+          const items = sidebarNav.getElementsByTagName('li');
+          Array.from(items).forEach(item => {
+            const link = item.querySelector('a');
+            if (link.textContent.toLowerCase().includes(filter)) {
+              item.style.display = '';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        }
+
+        filterInput.addEventListener('input', filterLessons);
+
+        // MODIFIED: speakThai function to use the specific Thai voice
+        function speakThai(text) {
+          // Cancel any current speech before starting a new one
+          if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+          }
+          
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'th-TH'; // Fallback language setting
+
+          if (thaiVoice) {
+            // Assign the specific Thai voice object for better reliability
+            utterance.voice = thaiVoice; 
+          }
+          
+          speechSynthesis.speak(utterance);
+        }
+
+        function checkPasswordAndFetch() {
+          // Use prompt for user input, but avoid alert/confirm for non-input dialogs
+          const password = prompt("Please enter the password to access the content:", "");
+          
+          if (password === "1669") {
+            showLoading();
+            fetch(apiUrl)
+              .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+              })
+              .then(data => {
+                hideLoading();
+                if (!Array.isArray(data)) {
+                  contentContainer.innerHTML = '<div class="alert alert-danger text-center mt-5" role="alert">ข้อผิดพลาด: รูปแบบข้อมูลที่ได้รับจาก API ไม่ถูกต้อง</div>';
+                  return;
+                }
+
+                sidebarNav.innerHTML = '';
+                contentContainer.innerHTML = '';
+
+                data.forEach((item, index) => {
+                  const sectionId = 'section-' + index;
+
+                  const li = document.createElement('li');
+                  li.className = 'nav-item';
+                  const a = document.createElement('a');
+                  a.className = 'nav-link' + (index === 0 ? ' active' : '');
+                  a.href = '#' + sectionId;
+                  a.textContent = (index + 1) + '. ' + item.title;
+                  li.appendChild(a);
+                  sidebarNav.appendChild(li);
+
+                  const section = document.createElement('section');
+                  section.id = sectionId;
+                  section.className = 'page-anchor-padding mb-5 border-bottom pb-4';
+
+                  let contentHtml = '<h1 class="display-5 fw-bold mb-4">' + item.title + '</h1>';
+
+                  if (item.paragraphs) {
+                    let combinedCleanTextForSpeech = '';
+                    let paragraphsHtml = '';
+
+                    // Split into paragraphs and build HTML + combined text
+                    item.paragraphs
+                      .trim()
+                      .split('\n\n')
+                      .forEach(p => {
+                        // 1. Text to display (with formatting)
+                        const formattedText = p.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        paragraphsHtml += '<p>' + formattedText + '</p>';
+                        
+                        // 2. Clean text for speech (for combining)
+                        // Add a pause separator (period) between paragraphs for better TTS flow
+                        const cleanText = p.replace(/\n/g, ' ')
+                                           .replace(/\*\*/g, '')
+                                           .trim();
+                        // Add space and a period for better pause in TTS
+                        combinedCleanTextForSpeech += cleanText + '. '; 
+                      });
+
+                    contentHtml += paragraphsHtml;
+                    
+                    // Escape the final combined text string for insertion into the onclick attribute
+                    // Only escape the content, not the surrounding quotes.
+                    const escapedCombinedText = combinedCleanTextForSpeech.replace(/'/g, "\\'").trim();
+
+                    // Add the single TTS button for the entire section
+                    if (escapedCombinedText.length > 0) {
+                        contentHtml += '<div class="mt-4"><button class="btn btn-danger tts-btn" onclick="speakThai(\'' +
+                                        escapedCombinedText + '\')">🔊 อ่านบทเรียนทั้งหมด</button></div>';
+                    }
+                  }
+
+                  if (item.codes) {
+                    contentHtml += '<h5 class="mt-4 text-primary">ตัวอย่างโค้ด</h5>';
+                    contentHtml += '<pre><code class="language-python">' + item.codes + '</code></pre>';
+                  }
+
+                  section.innerHTML = contentHtml;
+                  contentContainer.appendChild(section);
+                });
+              })
+              .catch(error => {
+                hideLoading();
+                console.error('Error fetching data:', error);
+                contentContainer.innerHTML = '<div class="alert alert-danger text-center mt-5" role="alert">ไม่สามารถโหลดเนื้อหาได้ โปรดลองอีกครั้งในภายหลัง</div>';
+              });
+          } else {
+            // MODIFIED: Replaced alert with direct message in the UI
+            console.error("Incorrect password attempt.");
+            contentContainer.innerHTML = '<div class="alert alert-danger text-center mt-5" role="alert">รหัสผ่านไม่ถูกต้อง! ไม่สามารถเข้าถึงเนื้อหาได้</div>';
+          }
+        }
+
+        checkPasswordAndFetch();
+        window.speakThai = speakThai;
+      });
+    </script>
+  </body>
+</html>
