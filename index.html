@@ -3,460 +3,721 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title> 1.0 SSKH Drug Interaction Checker</title>
+    <title>SSKH Drug Interaction Checker</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
       rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
     :root {
-      --bg: #0b1020;
-      --card: #121833;
-      --muted: #aab2d5;
-      --border: #2a3463;
-      --ok: #1f8b4c;
-      --warn: #d4a106;
-      --danger: #c93939;
-      --accent: #7aa2ff;
-      --text: #e8ecff;
-      --hover: rgba(122,162,255,0.08);
+      --primary: #0b426f;
+      --primary-dark: #1671cc;
+      --primary-light: #BBDEFB;
+      --accent: #FF4081;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --danger: #F44336;
+      --bg: #FAFAFA;
+      --surface: #FFFFFF;
+      --text-primary: #212121;
+      --text-secondary: #757575;
+      --divider: #E0E0E0;
     }
-    :root.light {
-      --bg: #f5f7ff;
-      --card: #ffffff;
-      --muted: #4a4a4a;
-      --border: #d6d9e6;
-      --ok: #1f8b4c;
-      --warn: #b88405;
-      --danger: #b53333;
-      --accent: #3355cc;
-      --text: #1a1a1a;
-      --hover: rgba(51,85,204,0.06);
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    * { box-sizing: border-box; }
+    
     body {
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      padding: 24px;
-      color: var(--text);
+      font-family: "Roboto", sans-serif;
       background: var(--bg);
-      transition: background 0.3s, color 0.3s;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
     }
-    h1, h2, h3 { margin: 0 0 10px; }
-    .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 18px; }
-    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
+    
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
       padding: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
     }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-    @media (min-width: 980px) { .grid { grid-template-columns: 420px 1fr; } }
-
-    label { font-size: 0.85rem; color: var(--muted); }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      transition: background 0.3s, color 0.3s, border-color 0.3s;
+    
+    /* Material AppBar */
+    .app-bar {
+      background: var(--primary);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin: -16px -16px 16px -16px;
     }
-    textarea { resize: vertical; min-height: 56px; }
-    .btn {
-      appearance: none;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--text);
-      padding: 10px 14px;
+    
+    .app-bar-title {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .app-bar-subtitle {
+      font-size: 14px;
+      opacity: 0.87;
+      margin-top: 4px;
+      font-weight: 300;
+    }
+    
+    /* Material Card */
+    .material-card {
+      background: var(--surface);
       border-radius: 12px;
-      cursor: pointer;
-      transition: transform .05s ease, background .2s ease, border-color .2s ease, color .2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .btn:hover { background: var(--accent); color: #fff; }
-    .btn:active { transform: translateY(1px); }
-    .btn.secondary { background: transparent; }
-    .btn.ghost { background: transparent; }
-
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border-bottom: 1px dashed var(--border); padding: 10px; text-align: left; }
-    th { color: var(--text); font-weight: 600; position: sticky; top: 0; background: var(--card); }
-    tr:hover td { background: var(--hover); }
-
-    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; }
-    .pill.low { background: rgba(31,139,76,.12); color: var(--ok); border: 1px solid rgba(31,139,76,.4); }
-    .pill.mid { background: rgba(212,161,6,.12); color: var(--warn); border: 1px solid rgba(212,161,6,.45); }
-    .pill.high { background: rgba(201,57,57,.12); color: var(--danger); border: 1px solid rgba(201,57,57,.45); }
-
-    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .muted { color: var(--muted); font-size: 0.9rem; }
-    .right { margin-left: auto; }
-    .nowrap { white-space: nowrap; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .danger { color: var(--danger); }
+    
+    .material-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.12);
+    }
+    
+    .card-content {
+      padding: 16px;
+    }
+    
+    .card-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      letter-spacing: 0.15px;
+    }
+    
+    /* Material TextField */
+    .text-field {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    
+    .text-field label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      display: block;
+      font-weight: 400;
+      letter-spacing: 0.4px;
+    }
+    
+    .text-field input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--divider);
+      border-radius: 8px;
+      font-size: 16px;
+      background: var(--surface);
+      color: var(--text-primary);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: "Roboto", sans-serif;
+    }
+    
+    .text-field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+    }
+    
+    .text-field input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.6;
+    }
+    
+    /* Material Button */
+    .material-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.75px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: "Roboto", sans-serif;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    }
+    
+    .material-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .material-btn-primary {
+      background: var(--success);
+      color: white;
+    }
+    
+    .material-btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.16);
+    }
+    
+    .material-btn-outlined {
+      background: transparent;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      box-shadow: none;
+    }
+    
+    .material-btn-outlined:hover {
+      background: rgba(33, 150, 243, 0.04);
+    }
+    
+    /* Material Chip */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.25px;
+      white-space: nowrap;
+    }
+    
+    .chip-success {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    
+    .chip-warning {
+      background: #FFF3E0;
+      color: #E65100;
+    }
+    
+    .chip-error {
+      background: #FFEBEE;
+      color: #C62828;
+    }
+    
+    /* Material Table */
+    .table-container {
+      overflow: auto;
+      max-height: 60vh;
+      border-radius: 8px;
+      border: 1px solid var(--divider);
+    }
+    
+    .material-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+    }
+    
+    .material-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .material-table thead th {
+      background: var(--accent);
+      color: white;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.25px;
+      border: none;
+      white-space: nowrap;
+    }
+    
+    .material-table tbody tr {
+      border-bottom: 1px solid var(--divider);
+      transition: background 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .material-table tbody tr:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+    
+    .material-table tbody td {
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+    
+    /* Material Divider */
+    .divider {
+      height: 1px;
+      background: var(--divider);
+      margin: 16px 0;
+    }
+    
+    /* FloatingActionButton style for search */
+    .search-container {
+      position: relative;
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 20px;
+    }
+    
+    .search-input {
+      padding-left: 48px !important;
+    }
+    
+    /* Info Card */
+    .info-card {
+      background: rgba(33, 150, 243, 0.04);
+      border-left: 4px solid var(--primary);
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-top: 16px;
+    }
+    
+    .info-card-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .info-card-content {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    
+    /* Bottom Sheet style footer */
+    .bottom-sheet {
+      background: var(--surface);
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+      padding: 16px;
+      margin: 16px -16px -16px -16px;
+    }
+    
+    .bottom-sheet-content {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    /* Loading indicator */
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(33, 150, 243, 0.2);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 8px;
+      }
+      
+      .app-bar {
+        padding: 12px 16px;
+        margin: -8px -8px 12px -8px;
+      }
+      
+      .app-bar-title {
+        font-size: 18px;
+      }
+      
+      .card-content {
+        padding: 12px;
+      }
+      
+      .material-btn {
+        width: 100%;
+        padding: 14px 24px;
+      }
+      
+      .material-table thead th,
+      .material-table tbody td {
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+      
+      .chip {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+      
+      .table-container {
+        max-height: 50vh;
+      }
+      
+      .bottom-sheet {
+        margin: 12px -8px -8px -8px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .material-table thead th,
+      .material-table tbody td {
+        padding: 8px 6px;
+      }
+    }
   </style>
   </head>
   <body>
-    <header
-      style="margin-bottom:20px; display:flex; align-items:center; gap:12px;">
-      <div>
-        <h1>Drug Interaction Checker</h1>
-        <div class="sub">เช็คคู่ยาซ้ำแบบเข้าใจง่าย: เราจัดเก็บ
-          <em>คู่ยา</em> แบบสมมาตร (A+B = B+A) ป้องกันการซ้ำ
-          พร้อมสีบ่งระดับความเสี่ยง
-          เก็บข้อมูลไว้ในเบราว์เซอร์คุณ</div>
+    <div class="app-container">
+      <div class="app-bar">
+        <div class="app-bar-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM17 13H13V17H11V13H7V11H11V7H13V11H17V13Z" />
+          </svg>
+          Drug Interaction Checker
+        </div>
+        <div class="app-bar-subtitle">โรงพยาบาลศรีสะเกษ -
+          ระบบตรวจสอบปฏิกิริยาระหว่างยา</div>
       </div>
-      <button class="btn right" id="btnTheme" title="สลับธีม">🌙
-        โหมดมืด</button>
-    </header>
 
-    <div class="grid">
-      <section class="card">
-        <h2 style="margin-bottom:10px">เพิ่ม / ตรวจสอบ คู่ยา</h2>
-        <div class="row">
-          <div style="flex:1; min-width: 180px;">
-            <label for="drugA">ชื่อยา 1</label>
-            <input id="drugA" list="drugList"
-              placeholder=" " />
-          </div>
-          <div style="flex:1; min-width: 180px;">
-            <label for="drugB">ชื่อยา 2</label>
-            <input id="drugB" list="drugList"
-              placeholder=" " />
+      <div class="row g-3">
+        <div class="col-12 col-lg-5">
+          <div class="material-card">
+            <div class="card-content">
+              <div class="card-title">ตรวจสอบคู่ยา</div>
+
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="text-field">
+                    <label>ยาตัวที่ 1</label>
+                    <input id="drugA" list="drugList"
+                      placeholder="พิมพ์ชื่อยา...">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="text-field">
+                    <label>ยาตัวที่ 2</label>
+                    <input id="drugB" list="drugList"
+                      placeholder="พิมพ์ชื่อยา...">
+                  </div>
+                </div>
+              </div>
+
+              <button class="material-btn material-btn-primary w-100"
+                id="btnCheck">
+                <svg width="20" height="20" viewBox="0 0 24 24"
+                  fill="currentColor">
+                  <path
+                    d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                </svg>
+                ตรวจสอบ
+              </button>
+
+              <datalist id="drugList"></datalist>
+
+              <div class="info-card">
+                <div class="info-card-title">ระดับความรุนแรง</div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <span class="chip chip-success">ต่ำ - Low</span>
+                  <span class="chip chip-warning">ปานกลาง - Moderate</span>
+                  <span class="chip chip-error">สูง - High</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <!-- <div class="row">
-          <div style="flex:1; min-width: 180px;">
-            <label for="severity">ระดับความเสี่ยง</label>
-            <select id="severity">
-              <option value="สูง">สูง
-                (หลีกเลี่ยง/เฝ้าระวังใกล้ชิด)</option>
-              <option value="ปานกลาง">ปานกลาง
-                (ระวัง/ปรับขนาดยา)</option>
-              <option value="ต่ำ">ต่ำ (สังเกตอาการ)</option>
-            </select>
+
+        <div class="col-12 col-lg-7">
+          <div class="material-card">
+            <div class="card-content">
+              <div class="card-title">รายการข้อมูลทั้งหมด</div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-12 col-sm-8">
+                  <div class="search-container">
+                    <svg class="search-icon" width="20" height="20"
+                      viewBox="0 0 24 24" fill="currentColor">
+                      <path
+                        d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                    <input id="search" class="text-field input search-input"
+                      placeholder="ค้นหา..." style="width: 100%; margin: 0;">
+                  </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                  <button class="material-btn material-btn-outlined w-100"
+                    id="btnExport">
+                    <svg width="20" height="20" viewBox="0 0 24 24"
+                      fill="currentColor">
+                      <path
+                        d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z" />
+                    </svg>
+                    Export
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="material-table">
+                  <thead>
+                    <tr>
+                      <th>ย่อ</th>
+                      <th>ยาหลัก</th>
+                      <th>ยาปฏิกิริยา</th>
+                      <th>ระดับ</th>
+                      <th class="d-none d-md-table-cell">กลไก</th>
+                      <th class="d-none d-lg-table-cell">เริ่มมีฤทธิ์</th>
+                      <th class="d-none d-lg-table-cell">หมดฤทธิ์</th>
+                      <th class="d-none d-lg-table-cell">ติดตาม INR</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody">
+                    <tr>
+                      <td colspan="8"
+                        style="text-align: center; padding: 40px;">
+                        <div class="loader" style="margin: 0 auto 12px;"></div>
+                        <div
+                          style="color: var(--text-secondary);">กำลังโหลดข้อมูล...</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-          <div style="flex:2; min-width: 240px;">
-            <label for="notes">หมายเหตุ (ถ้ามี)</label>
-            <input id="notes"
-              placeholder="กลไก, อาการ, แนวทางรับมือแบบย่อ" />
-          </div>
-        </div> -->
-        <div class="toolbar" style="margin-top:10px">
-          <!-- <button class="btn" id="btnAdd">เพิ่ม/อัปเดต</button> -->
-          <button class="btn  " id="btnCheck">ตรวจสอบ</button>
-          <!-- <div class="right muted">ระบบจะบันทึกอัตโนมัติในเครื่องคุณ
-            (localStorage)</div> -->
         </div>
-        <datalist id="drugList"></datalist>
-      </section>
+      </div>
 
-      <section class="card">
-        <h2 style="margin-bottom:10px">รายการคู่ยาทั้งหมด</h2>
-        <div class="toolbar" style="margin-bottom:10px">
-          <input id="search"
-            placeholder="พิมพ์เพื่อกรอง เช่น warfarin, สูง"
-            style="flex:1" />
-          <button class="btn ghost" id="btnExport">Export
-            JSON</button>
-
-          <input id="fileImport" type="file" accept="application/json"
-            style="display:none" />
-
+      <div class="bottom-sheet">
+        <div class="bottom-sheet-content">
+          <strong style="color: var(--danger);">⚠️ คำเตือน:</strong>
+          ระบบนี้ใช้เพื่อการตรวจสอบเบื้องต้นเท่านั้น
+          ไม่ทดแทนการตัดสินใจทางคลินิก
+          คำปรึกษาจากเภสัชกร หรือระบบ CPOE ของโรงพยาบาล
+          กรุณาตรวจสอบกับแหล่งข้อมูลทางการแพทย์อย่างเป็นทางการก่อนการใช้งานจริง
         </div>
-        <div class="card"
-          style="padding:0; overflow:auto; max-height:60vh;">
-          <table>
-            <thead>
-              <tr>
-                <th>ชื่อย่อ</th>
-                <th>รายการยา</th>
-                <th>ยาปฏิกิริยา</th>
-                <th>กลไก</th>
-                <th style="width:38%">ผลลัพธ์</th>
-                <th>เริ่มมีฤทธิ์ต่อกัน</th>
-                <th>เริ่มหมดฤทธิ์ต่อกัน</th>
-                <th>ติดตามค่า INR ทุก</th>
-                <th class="nowrap" style="width:1%"> ..</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-
-      </section>
+      </div>
     </div>
 
-    <footer class="muted" style="margin-top:16px">
-      <span class="mono">หมายเหตุสำคัญ:</span>
-      เครื่องมือนี้ใช้เพื่อการช่วยตรวจสอบเบื้องต้น
-      ไม่ทดแทนแหล่งข้อมูลวิชาการ/ระบบ CPOE/คำสั่งแพทย์
-      ตรวจสอบกับฐานข้อมูลทางการแพทย์เสมอเมื่อใช้จริง
-    </footer>
-
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    const storeKey = 'drugInteractions_v2';
-    const themeKey = 'drugTheme';
     const $ = (id) => document.getElementById(id);
+    const API_URL = "https://script.google.com/macros/s/AKfycbwDh_ui4STIJhjUyJwyPZKs9Pxj3NbM92K4Gt2u2nbFuArqUhDdTVyzt4MpgnVpevEvcg/exec";
+    let db = [];
 
-    function normalizeDrug(name) { return name.trim().replace(/\s+/g, ' '); }
-    function keyOf(a, b) {
-      const A = normalizeDrug(a).toLowerCase();
-      const B = normalizeDrug(b).toLowerCase();
-      if (!A || !B) return '';
-      return [A, B].sort().join(' | ');
+    function normalizeDrug(name) {
+      return name.trim().replace(/\s+/g, ' ');
     }
 
-    function load() {
-      try { return JSON.parse(localStorage.getItem(storeKey)) || null; } catch { return null; }
+    function levelChip(level) {
+      const lv = (level || "").toLowerCase();
+      if (lv.includes("สูง")) return `<span class="chip chip-error">${level}</span>`;
+      if (lv.includes("กลาง")) return `<span class="chip chip-warning">${level}</span>`;
+      return `<span class="chip chip-success">${level}</span>`;
     }
-    function save(map) { localStorage.setItem(storeKey, JSON.stringify(map)); }
 
-    let db = load() || {
-      // [keyOf('Aspirin', 'Warfarin')]: { a: 'Aspirin', b: 'Warfarin', level: 'สูง', notes: 'เสี่ยงเลือดออก เพิ่ม INR' },
-      // [keyOf('Metformin', 'Alcohol')]: { a: 'Metformin', b: 'Alcohol', level: 'ปานกลาง', notes: 'เสี่ยง Lactic acidosis' },
-      // [keyOf('Statin', 'Grapefruit')]: { a: 'Statin', b: 'Grapefruit', level: 'สูง', notes: 'ยับยั้ง CYP3A4 เพิ่ม CK/กล้ามเนื้ออักเสบ' },
-      // [keyOf('Ibuprofen', 'Prednisolone')]: { a: 'Ibuprofen', b: 'Prednisolone', level: 'ต่ำ', notes: 'เพิ่มเสี่ยง GI irritation' },
-    };
-
-    function levelPill(level) {
-      const lv = (level || '').toLowerCase();
-      const cls = lv.includes('สูง') || lv.includes('high') ? 'high' :
-                  (lv.includes('กลาง') || lv.includes('medium')) ? 'mid' : 'low';
-      return `<span class="pill ${cls}">${level}</span>`;
+    async function loadFromSheet() {
+      try {
+        const res = await fetch(API_URL + "?action=list");
+        const data = await res.json();
+        db = data;
+        renderTable();
+        
+        const drugs = [...new Set(data.flatMap(it => [it["รายการยา"], it["ยาปฏิกิริยา"]]))].filter(Boolean);
+        $("drugList").innerHTML = drugs.map(d => `<option value="${d}"></option>`).join("");
+      } catch (error) {
+        console.error("Error loading data:", error);
+        $("tbody").innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px; color: var(--danger);">
+              <div style="font-size: 48px; margin-bottom: 12px;">❌</div>
+              <div style="font-weight: 500;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>
+              <div style="color: var(--text-secondary); margin-top: 8px; font-size: 13px;">กรุณาลองใหม่อีกครั้ง</div>
+            </td>
+          </tr>
+        `;
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+          confirmButtonColor: "#2196F3",
+          confirmButtonText: "ตกลง"
+        });
+      }
     }
 
     function renderTable(filter = '') {
       const tbody = $('tbody');
       const q = filter.trim().toLowerCase();
-      const rows = Object.values(db)
-        .filter(it => {
-          if (!q) return true;
-          return (
-            it.a.toLowerCase().includes(q) ||
-            it.b.toLowerCase().includes(q) ||
-            (it.level||'').toLowerCase().includes(q) ||
-            (it.notes||'').toLowerCase().includes(q)
-          );
-        })
-        .sort((x, y) => x.a.localeCompare(y.a) || x.b.localeCompare(y.b));
+      const filtered = db.filter(it => {
+        if (!q) return true;
+        return Object.values(it).some(val => 
+          String(val).toLowerCase().includes(q)
+        );
+      });
 
-      tbody.innerHTML = rows.map(it => `
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              <div style="font-size: 48px; margin-bottom: 12px;">🔍</div>
+              <div style="font-weight: 500;">ไม่พบข้อมูล</div>
+              <div style="font-size: 13px; margin-top: 8px;">ลองใช้คำค้นหาอื่น</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(it => `
         <tr>
-          <td>${escapeHtml(it.a)}</td>
-          <td>${escapeHtml(it.b)}</td>
-          <td>${levelPill(escapeHtml(it.level))}</td>
-          <td>${escapeHtml(it.notes||'')}</td>
-          <td><button class=\"btn ghost\" title=\"ลบรายการ\" onclick=\"removePair('${keyOf(it.a, it.b)}')\">🗑️</button></td>
+          <td><strong>${it["ชื่อย่อ"] || ""}</strong></td>
+          <td>${it["รายการยา"] || ""}</td>
+          <td>${it["ยาปฏิกิริยา"] || ""}</td>
+          <td>${levelChip(it["ผลลัพธ์"] || "")}</td>
+          <td class="d-none d-md-table-cell" style="color: var(--text-secondary);">${it["กลไก"] || "-"}</td>
+          <td class="d-none d-lg-table-cell" style="color: var(--text-secondary);">${it["เริ่มมีฤทธิ์ต่อกัน"] || "-"}</td>
+          <td class="d-none d-lg-table-cell" style="color: var(--text-secondary);">${it["เริ่มหมดฤทธิ์ต่อกัน"] || "-"}</td>
+          <td class="d-none d-lg-table-cell" style="color: var(--text-secondary);">${it["ติดตามค่า INR ทุก"] || "-"}</td>
         </tr>
-      `).join('');
-
-      const drugs = [...new Set(Object.values(db).flatMap(it => [it.a, it.b]))].sort();
-      $('drugList').innerHTML = drugs.map(d => `<option value="${escapeHtml(d)}"></option>`).join('');
-    }
-
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>\"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
-    }
-
-    function addOrUpdate() {
-      const a = normalizeDrug($('drugA').value);
-      const b = normalizeDrug($('drugB').value);
-      const level = $('severity').value.trim();
-      const notes = $('notes').value.trim();
-
-      if (!a || !b) return Swal.fire('กรอกข้อมูลไม่ครบ', 'กรุณาใส่ชื่อยาให้ครบทั้ง 2 ช่อง', 'warning');
-      if (a.toLowerCase() === b.toLowerCase()) return Swal.fire('คู่ยาซ้ำตัวเอง', 'โปรดใส่ยาคนละตัว', 'warning');
-
-      const k = keyOf(a, b);
-      const existed = !!db[k];
-      db[k] = { a, b, level, notes };
-      save(db);
-      renderTable($('search').value);
-
-      Swal.fire(existed ? 'อัปเดตข้อมูลสำเร็จ' : 'เพิ่มข้อมูลสำเร็จ', `${a} + ${b} → ระดับ: ${level}`, existed ? 'info' : 'success');
-      $('notes').value = '';
+      `).join("");
     }
 
     function checkPair() {
-        const a = normalizeDrug($('drugA').value).toLowerCase();
-        const b = normalizeDrug($('drugB').value).toLowerCase();
-        if (!a || !b) {
-          return Swal.fire('กรอกข้อมูลไม่ครบ', 'กรุณาใส่ชื่อยาให้ครบทั้ง 2 ช่อง', 'warning');
-        }
-
-        // หาทั้งหมดที่ "มี" a และ b อยู่ใน key
-        // const results = Object.values(db).filter(item =>
-        //   (item.a.includes(a) && item.b.includes(b)) ||
-        //   (item.a.includes(b) && item.b.includes(a))
-        // );
-
-        console.log(db)
-
-        const results = db.filter(item => {
-          console.log(item['รายการยา'], item["ยาปฏิกิริยา"] );
-          if (!item['รายการยา'] || !item["ยาปฏิกิริยา"]) return false;
-          const A = item['รายการยา'].toLowerCase();
-          const B = item["ยาปฏิกิริยา"].toLowerCase();
-          return (
-            (A.includes(a) && B.includes(b)) ||
-            (A.includes(b) && B.includes(a))
-          );
+      const a = normalizeDrug($('drugA').value).toLowerCase();
+      const b = normalizeDrug($('drugB').value).toLowerCase();
+      
+      if (!a || !b) {
+        return Swal.fire({
+          icon: 'warning',
+          title: 'กรอกข้อมูลไม่ครบ',
+          text: 'กรุณาใส่ชื่อยาให้ครบทั้ง 2 ช่อง',
+          confirmButtonColor: '#2196F3',
+          confirmButtonText: 'ตกลง'
         });
-
-        console.log(results);
- 
-
-        if (results.length > 0) {
-  const found = results[0];
-  Swal.fire(
-    '💊 พบการโต้ตอบยา',
-    `${found['รายการยา']} + ${found["ยาปฏิกิริยา"]}
-     <br>⚙️ ผลลัพธ์: <b>${found['ผลลัพธ์']}</b>
-   <br> กลไก ${found['กลไก']  }
-   <br> ติดตามค่า INR ทุก	 ${found['ติดตามค่า INR ทุก']  }
-   <br> เริ่มมีฤทธิ์ต่อกัน ${found['เริ่มมีฤทธิ์ต่อกัน']  }
-   <br> เริ่มหมดฤทธิ์ต่อกัน ${found['เริ่มหมดฤทธิ์ต่อกัน']  }
-    
-    
-    `,
-    'error'
-  );
-  return;
-} else {
-  Swal.fire(
-    'ℹ️ ไม่พบในคลังนี้',
-    '📂 ยังไม่มีข้อมูลคู่นี้ คุณสามารถเพิ่มได้ทันที',
-    'success'
-  );
-  return;
-}
-
       }
 
-
-    function removePair(k) {
-      Swal.fire({
-        title: 'ลบรายการนี้?', text: 'การลบไม่สามารถย้อนกลับได้', icon: 'warning', showCancelButton: true,
-        confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก'
-      }).then(res => {
-        if (res.isConfirmed) {
-          delete db[k];
-          save(db); renderTable($('search').value);
-          Swal.fire('ลบแล้ว', '', 'success');
-        }
+      const results = db.filter(item => {
+        if (!item['รายการยา'] || !item["ยาปฏิกิริยา"]) return false;
+        const A = item['รายการยา'].toLowerCase();
+        const B = item["ยาปฏิกิริยา"].toLowerCase();
+        return (
+          (A.includes(a) && B.includes(b)) ||
+          (A.includes(b) && B.includes(a))
+        );
       });
+
+      if (results.length > 0) {
+        const found = results[0];
+        const chipHtml = levelChip(found['ผลลัพธ์']);
+        
+        Swal.fire({
+          icon: 'error',
+          title: '⚠️ พบปฏิกิริยาระหว่างยา',
+          html: `
+            <div style="text-align: left; padding: 16px; background: #FAFAFA; border-radius: 8px; margin: 16px 0;">
+              <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #F44336;">
+                <div style="font-size: 18px; font-weight: 500; color: #212121; margin-bottom: 8px;">
+                  <strong>${found['รายการยา']}</strong> + <strong>${found["ยาปฏิกิริยา"]}</strong>
+                </div>
+                <div style="margin-top: 8px;">
+                  <span style="color: #757575; font-size: 14px; margin-right: 8px;">ระดับความรุนแรง:</span>
+                  ${chipHtml}
+                </div>
+              </div>
+              
+              <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                <div style="color: #2196F3; font-weight: 500; margin-bottom: 4px;">⚙️ กลไก</div>
+                <div style="color: #757575; font-size: 14px;">${found['กลไก'] || '-'}</div>
+              </div>
+              
+              <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                <div style="color: #2196F3; font-weight: 500; margin-bottom: 4px;">⏱️ เริ่มมีฤทธิ์ต่อกัน</div>
+                <div style="color: #757575; font-size: 14px;">${found['เริ่มมีฤทธิ์ต่อกัน'] || '-'}</div>
+              </div>
+              
+              <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                <div style="color: #2196F3; font-weight: 500; margin-bottom: 4px;">⏰ เริ่มหมดฤทธิ์ต่อกัน</div>
+                <div style="color: #757575; font-size: 14px;">${found['เริ่มหมดฤทธิ์ต่อกัน'] || '-'}</div>
+              </div>
+              
+              <div style="background: white; padding: 12px; border-radius: 8px;">
+                <div style="color: #2196F3; font-weight: 500; margin-bottom: 4px;">🩺 ติดตามค่า INR ทุก</div>
+                <div style="color: #757575; font-size: 14px;">${found['ติดตามค่า INR ทุก'] || '-'}</div>
+              </div>
+            </div>
+          `,
+          confirmButtonText: 'รับทราบ',
+          confirmButtonColor: '#2196F3',
+          width: '600px'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: '✅ ไม่พบปฏิกิริยา',
+          text: 'ไม่พบข้อมูลปฏิกิริยาระหว่างยาคู่นี้ในระบบ',
+          confirmButtonColor: '#4CAF50',
+          confirmButtonText: 'ตกลง'
+        });
+      }
     }
 
     function exportJson() {
       const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = 'drug_interactions.json';
-      document.body.appendChild(a); a.click(); a.remove();
+      a.href = url;
+      a.download = `drug_interactions_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       URL.revokeObjectURL(url);
-    }
- 
-    function clearAll() {
-      Swal.fire({ title: 'ล้างข้อมูลทั้งหมด?', text: 'ไม่สามารถย้อนกลับได้', icon: 'warning', showCancelButton: true, confirmButtonText: 'ล้าง', cancelButtonText: 'ยกเลิก' })
-        .then(res => {
-          if (res.isConfirmed) {
-            db = {}; save(db); renderTable();
-            Swal.fire('ล้างแล้ว', '', 'success');
-          }
-        });
-    }
-
-    // —— Theme: toggle & persistence ——
-    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-    function applyTheme(theme) {
-      const isLight = theme === 'light';
-      document.documentElement.classList.toggle('light', isLight);
-      const btn = $('btnTheme');
-      btn.textContent = isLight ? '☀️ โหมดสว่าง' : '🌙 โหมดมืด';
-      localStorage.setItem(themeKey, theme);
-    }
-    function initTheme() {
-      const saved = localStorage.getItem(themeKey);
-      applyTheme(saved ? saved : (prefersLight ? 'light' : 'dark'));
-    }
-
-    // —— Event wiring ——
-    // $('btnAdd').addEventListener('click', addOrUpdate);
-    $('btnCheck').addEventListener('click', checkPair);
-    $('btnExport').addEventListener('click', exportJson); 
-    // $('btnClear').addEventListener('click', clearAll);
-    $('search').addEventListener('input', (e) => renderTable(e.target.value));
-    $('btnTheme').addEventListener('click', () => {
-      const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
-      applyTheme(next);
-    });
-
-    // ['drugA','drugB','notes'].forEach(id => {
-    //   $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') addOrUpdate(); });
-    // });
-
-    // เริ่มต้น
-    initTheme();
-    renderTable();
-
-
-    const API_URL = "https://script.google.com/macros/s/AKfycbwDh_ui4STIJhjUyJwyPZKs9Pxj3NbM92K4Gt2u2nbFuArqUhDdTVyzt4MpgnVpevEvcg/exec";
-
-
-    function levelPill(level) {
-      const lv = (level || "").toLowerCase();
-      if (lv.includes("สูง")) return `<span class="pill high">${level}</span>`;
-      if (lv.includes("กลาง")) return `<span class="pill mid">${level}</span>`;
-      return `<span class="pill low">${level}</span>`;
-    }
-
-    async function loadFromSheet() {
-      const res = await fetch(API_URL + "?action=list");
-      const data = await res.json();
-      db = data;
       
-      console.log(db)
-      const tbody = document.getElementById("tbody");
-      tbody.innerHTML = data.map(it => `
-        <tr>
-          <td>${it["ชื่อย่อ"]}</td>
-          <td>${it["รายการยา"]}</td>
-          <td>${it["ยาปฏิกิริยา"]}</td>
-          <td>${levelPill(it["ผลลัพธ์"])}</td>
-          <td>${it["กลไก"]}</td>
-          
-          <td>${it["เริ่มมีฤทธิ์ต่อกัน"]}</td>
-          <td>${it["เริ่มหมดฤทธิ์ต่อกัน"]}</td>
-          <td>${it["ติดตามค่า INR ทุก"]}</td>
-        </tr>
-      `).join("");
-      const drugs = [...new Set(data.map(it => it["ชื่อยา"]))];
-      document.getElementById("drugList").innerHTML = drugs.map(d => `<option value="${d}"></option>`).join("");
+      Swal.fire({
+        icon: 'success',
+        title: 'ส่งออกสำเร็จ',
+        text: 'ดาวน์โหลดไฟล์ข้อมูลเรียบร้อยแล้ว',
+        confirmButtonColor: '#4CAF50',
+        confirmButtonText: 'ตกลง',
+        timer: 2000,
+        timerProgressBar: true
+      });
     }
 
-    async function checkFromSheet(drug) {
-      // const res = await fetch(API_URL + "?action=check&drug=" + encodeURIComponent(drug));
-      // const data = await res.json();
-      // if (data.length > 0) {
-      //   Swal.fire("พบข้อมูล", `${drug} → ${data[0]["ผลลัพธ์"]}<br>${data[0]["กลไก"]}`, "info");
-      // } else {
-      //   Swal.fire("ไม่พบ", "ยังไม่มีข้อมูลยานี้ในระบบ", "warning");
-      // }
-    }
-
-    document.getElementById("btnCheck").addEventListener("click", () => {
-      const drug = document.getElementById("drugA").value.trim();
-      if (!drug) return Swal.fire("กรอกชื่อยา", "", "warning");
-      checkFromSheet(drug);
+    // Event listeners
+    $('btnCheck').addEventListener('click', checkPair);
+    $('btnExport').addEventListener('click', exportJson);
+    $('search').addEventListener('input', (e) => renderTable(e.target.value));
+    
+    // Enter key support
+    ['drugA', 'drugB'].forEach(id => {
+      $(id).addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') checkPair();
+      });
     });
 
-    // init
+    // Initialize
     loadFromSheet();
   </script>
   </body>
