@@ -648,7 +648,7 @@
           <td>${levelChip(it["ผลลัพธ์"] || "")}</td>
           <td class="d-none d-md-table-cell" style="color: var(--text-secondary);">${it["กลไก"] || "-"}</td>
           <td class="d-none d-lg-table-cell" style="color: var(--text-secondary);">${it["เริ่มมีฤทธิ์ต่อกัน"] || "-"}</td>
-          <td class="d-none d-lg-table-cell" style="color: var(--text-secondary);">${it["เริ่มหมดฤทธิ์ต่อกัน"] || "-"}</td>
+          <td class="d-none d-lg-table-cell" style="color: var(--text-secondary);">${it["คำแนะนำ"] || "-"}</td>
           <td class="d-none d-lg-table-cell" style="color: var(--text-secondary);">${it["ติดตามค่า INR ทุก"] || "-"}</td>
         </tr>
       `).join("");
@@ -708,8 +708,8 @@
               </div>
               
               <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                <div style="color: #2196F3; font-weight: 500; margin-bottom: 4px;">⏰ เริ่มหมดฤทธิ์ต่อกัน</div>
-                <div style="color: #757575; font-size: 14px;">${found['เริ่มหมดฤทธิ์ต่อกัน'] || '-'}</div>
+                <div style="color: #2196F3; font-weight: 500; margin-bottom: 4px;">⏰ คำแนะนำ</div>
+                <div style="color: #757575; font-size: 14px;">${found['คำแนะนำ'] || '-'}</div>
               </div>
               
               <div style="background: white; padding: 12px; border-radius: 8px;">
